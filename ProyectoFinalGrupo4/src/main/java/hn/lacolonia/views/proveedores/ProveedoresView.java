@@ -167,14 +167,6 @@ public class ProveedoresView extends Div implements ViewModelProveedores {
                 predicates.add(idMatch);
             }
             
-            
-            /*if (!idproveedor.isEmpty()) {
-            	String lowerCaseFilter = idproveedor.getValue().toLowerCase();
-                Predicate idMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("idproveedor")),
-                        lowerCaseFilter + "%");
-                predicates.add(idMatch);
-            }*/
-            
             if (!nombre.isEmpty()) {
                 String lowerCaseFilter = nombre.getValue().toLowerCase();
                 Predicate nameMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")),
