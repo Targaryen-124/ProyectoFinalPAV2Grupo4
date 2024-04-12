@@ -99,7 +99,7 @@ public class ProveedoresView extends Div implements ViewModelProveedores {
     
     public static class Filters extends Div implements Specification<Proveedor> {
     	
-    	private final TextField idproveedor = new TextField("ID");
+    	private final NumberField idproveedor = new NumberField("ID");
         private final TextField nombre = new TextField("Nombre");
         private final TextField direccion = new TextField("Direccion");
         private final TextField telefono = new TextField("Telefono");
@@ -158,12 +158,22 @@ public class ProveedoresView extends Div implements ViewModelProveedores {
         public Predicate toPredicate(Root<Proveedor> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (!idproveedor.isEmpty()) {
+            if (idproveedor != null) {
+                String idString = String.valueOf(idproveedor);
+                Predicate idMatch = criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("idproveedor").as(String.class)),
+                    idString + "%"
+                );
+                predicates.add(idMatch);
+            }
+            
+            
+            /*if (!idproveedor.isEmpty()) {
             	String lowerCaseFilter = idproveedor.getValue().toLowerCase();
                 Predicate idMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("idproveedor")),
                         lowerCaseFilter + "%");
                 predicates.add(idMatch);
-            }
+            }*/
             
             if (!nombre.isEmpty()) {
                 String lowerCaseFilter = nombre.getValue().toLowerCase();

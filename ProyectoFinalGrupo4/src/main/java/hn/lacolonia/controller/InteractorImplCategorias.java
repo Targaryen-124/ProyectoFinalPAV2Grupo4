@@ -1,7 +1,8 @@
-package hn.lacolonia.controller;
+ package hn.lacolonia.controller;
 
 import hn.lacolonia.data.Categoria;
 import hn.lacolonia.data.CategoriasResponse;
+import hn.lacolonia.data.ProveedoresResponse;
 import hn.lacolonia.model.DatabaseRepositoryImpl;
 import hn.lacolonia.views.categorias.ViewModelCategorias;
 
@@ -73,6 +74,21 @@ public class InteractorImplCategorias implements InteractorCategorias {
 		}catch(Exception error) {
 			error.printStackTrace();
 		}
+	}
+	
+	@Override
+	public void consultarProveedores() {
+		try {
+			ProveedoresResponse respuesta = this.modelo.consultarProveedores();
+			if(respuesta == null || respuesta.getCount() == 0 || respuesta.getItems() == null) {
+				this.vista.mostrarMensajeError("No hay proveedores a mostrar");
+			}else {
+				this.vista.mostrarProveedoresEnCombobox(respuesta.getItems());
+			}
+		}catch(Exception error) {
+			error.printStackTrace();
+		}
+		
 	}
 	
 }

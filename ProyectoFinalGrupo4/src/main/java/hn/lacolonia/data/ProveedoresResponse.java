@@ -2,6 +2,7 @@ package hn.lacolonia.data;
 import java.util.List;
 
 public class ProveedoresResponse {
+	
 	private List<Proveedor> items;
 	private int count;
 	

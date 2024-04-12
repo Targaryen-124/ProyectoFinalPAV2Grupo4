@@ -225,7 +225,7 @@ public class ProductosView extends Div implements BeforeEnterObserver, ViewModel
         precio.setPrefixComponent(lempiraPrefix);
         
         categoria = new ComboBox<>("Categoria");
-        categoria.setId("txt_categoria");
+        categoria.setId("cbo_categoria");
         categoria.setPrefixComponent(VaadinIcon.LIST_UL.create());
         categoria.setItemLabelGenerator(Categoria::getNombre);
         

@@ -5,6 +5,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -33,6 +34,7 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import hn.lacolonia.controller.InteractorCategorias;
 import hn.lacolonia.controller.InteractorImplCategorias;
 import hn.lacolonia.data.Categoria;
+import hn.lacolonia.data.Proveedor;
 import hn.lacolonia.data.SamplePerson;
 import hn.lacolonia.views.MainLayout;
 import hn.lacolonia.views.productos.ProductosView;
@@ -57,7 +59,7 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
     private NumberField idcategoria;
     private TextField nombre;
     private TextField estado;
-    private TextField proveedor;
+    private ComboBox<Proveedor> proveedor;
 
     private final Button cancel = new Button("Cancelar", new Icon(VaadinIcon.CLOSE_CIRCLE));
     private final Button save = new Button("Guardar", new Icon(VaadinIcon.CHECK_CIRCLE));
@@ -65,13 +67,16 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
 
     private Categoria categoriaSeleccionada;
     private List<Categoria> elementos;
+    private List<Proveedor> proveedores;
     private InteractorCategorias controlador;
+    private Proveedor proveedorSeleccionado;
 
     public CategoriasView() {
         addClassNames("categorias-view");
         
         controlador = new InteractorImplCategorias(this);
         elementos = new ArrayList<>();
+        proveedores = new ArrayList<>();
         
         // Create UI
         SplitLayout splitLayout = new SplitLayout();
@@ -85,7 +90,7 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
         grid.addColumn("idcategoria").setAutoWidth(true);
         grid.addColumn("nombre").setAutoWidth(true);
         grid.addColumn("estado").setAutoWidth(true);
-        grid.addColumn("proveedor").setAutoWidth(true);
+        grid.addColumn("nombre_proveedor").setAutoWidth(true).setHeader("Proveedor");
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
@@ -100,6 +105,7 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
         });
 
         controlador.consultarCategorias();
+        controlador.consultarProveedores();
         
         cancel.addClickListener(e -> {
             clearForm();
@@ -114,7 +120,7 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
                     
                     this.categoriaSeleccionada.setNombre(nombre.getValue());
                     this.categoriaSeleccionada.setEstado(estado.getValue());
-                    this.categoriaSeleccionada.setProveedor(proveedor.getValue());
+                    this.categoriaSeleccionada.setProveedor(proveedor.getValue().getIdproveedor());
                     
                     this.controlador.crearCategorias(categoriaSeleccionada);
                     
@@ -123,11 +129,10 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
                 	this.categoriaSeleccionada.setIdcategoria(idcategoria.getValue().intValue());
                 	this.categoriaSeleccionada.setNombre(nombre.getValue());
                     this.categoriaSeleccionada.setEstado(estado.getValue());
-                    this.categoriaSeleccionada.setProveedor(proveedor.getValue());
+                    this.categoriaSeleccionada.setProveedor(proveedor.getValue().getIdproveedor());
                     
                     this.controlador.actualizarCategorias(categoriaSeleccionada);
                 }
-                
                 clearForm();
                 refreshGrid();
                 UI.getCurrent().navigate(CategoriasView.class);
@@ -203,9 +208,10 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
         estado.setId("txt_estado");
         estado.setPrefixComponent(VaadinIcon.CLIPBOARD_CHECK.create());
         
-        proveedor = new TextField("Proveedor");
-        proveedor.setId("txt_proveedor");
+        proveedor = new ComboBox<>("Proveedor");
+        proveedor.setId("cbo_proveedor");
         proveedor.setPrefixComponent(VaadinIcon.TRUCK.create());
+        proveedor.setItemLabelGenerator(Proveedor::getNombre);
         
         formLayout.add(idcategoria, nombre, estado, proveedor);
 
@@ -240,6 +246,7 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
         grid.select(null);
         grid.getDataProvider().refreshAll();
         this.controlador.consultarCategorias();
+        this.controlador.consultarProveedores();
     }
 
     private void clearForm() {
@@ -252,16 +259,29 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
         	idcategoria.setValue(Double.valueOf(value.getIdcategoria()));
             nombre.setValue(value.getNombre());
             estado.setValue(value.getEstado());
-            proveedor.setValue(value.getProveedor());
+            
+            proveedorSeleccionado = buscarProveedor(value.getProveedor());
+            proveedor.setValue(proveedorSeleccionado);
         }else {
         	idcategoria.setValue(0.0);
             nombre.setValue("");
             estado.setValue("");
-            proveedor.setValue("");
+            proveedor.clear();
 	    }
 	}
     
-    @Override
+    private Proveedor buscarProveedor(int idProveedor) {
+		Proveedor encontrado = null;
+		for(Proveedor prov: proveedores) {
+			if(prov.getIdproveedor() == idProveedor) {
+				encontrado = prov;
+				break;
+			}
+		}
+		return encontrado;
+	}
+
+	@Override
 	public void mostrarCategoriasEnGrid(List<Categoria> items) {
 		Collection<Categoria> itemsCollection = items;
 		grid.setItems(itemsCollection);
@@ -273,6 +293,13 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
 		Notification n = Notification.show(mensaje);
 		n.setPosition(Position.MIDDLE);
         n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+	}
+	
+	@Override
+	public void mostrarProveedoresEnCombobox(List<Proveedor> items) {
+		Collection<Proveedor> itemsCollection = items;
+		proveedores = items;
+		proveedor.setItems(items);	
 	}
 	
 	@Override
