@@ -2,6 +2,7 @@ package hn.lacolonia.views.proveedores;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
@@ -23,6 +24,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -33,6 +36,7 @@ import hn.lacolonia.controller.InteractorProveedores;
 import hn.lacolonia.data.Producto;
 import hn.lacolonia.data.Proveedor;
 import hn.lacolonia.views.MainLayout;
+import hn.lacolonia.views.productos.ProductosView;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
@@ -41,14 +45,19 @@ import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 
 @PageTitle("Proveedores")
 @Route(value = "proveedores", layout = MainLayout.class)
 @Uses(Icon.class)
-public class ProveedoresView extends Div implements ViewModelProveedores {
+public class ProveedoresView extends Div implements /*BeforeEnterObserver*/ ViewModelProveedores {
 
+	/*private final String SUPPLIER_IDPROVEEDOR = "idproveedor";
+    private final String SUPPLIER_EDIT_ROUTE_TEMPLATE = "proveedores/%s/edit";*/
+    
     private Grid<Proveedor> grid = new Grid<>(Proveedor.class, false);
     
     private Filters filters;
@@ -71,6 +80,7 @@ public class ProveedoresView extends Div implements ViewModelProveedores {
         controlador = new InteractorImplProveedores(this);
         elementos = new ArrayList<>();
         controlador.consultarProveedores();
+        
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -126,15 +136,6 @@ public class ProveedoresView extends Div implements ViewModelProveedores {
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
             
-            /*Button deleteBtn = new Button("Eliminar", new Icon(VaadinIcon.TRASH));
-            deleteBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
-            deleteBtn.setId("btn_eliminar");
-            deleteBtn.addClickListener(e -> {
-            	Notification n = Notification.show("Boton Eliminar Seleccionado, Aun no hay Nada que Eliminar");
-            	n.setPosition(Position.MIDDLE);
-                n.addThemeVariants(NotificationVariant.LUMO_WARNING);
-            });*/
-            
             Div actions = new Div(searchBtn, cancelBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
@@ -152,9 +153,10 @@ public class ProveedoresView extends Div implements ViewModelProveedores {
             telefono.setPrefixComponent(VaadinIcon.PHONE.create());
             
             add(idproveedor, nombre, direccion, telefono, actions);
+            
         }
-
-        @Override
+        
+		@Override
         public Predicate toPredicate(Root<Proveedor> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -191,9 +193,11 @@ public class ProveedoresView extends Div implements ViewModelProveedores {
                         "%" + lowerCaseFilter + "%");
                 predicates.add(telefonoMatch);
             }
-            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
+            
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            
         }
-        
+		
         private String ignoreCharacters(String characters, String in) {
             String result = in;
             for (int i = 0; i < characters.length(); i++) {
@@ -220,14 +224,54 @@ public class ProveedoresView extends Div implements ViewModelProveedores {
         grid.addColumn("nombre").setAutoWidth(true);
         grid.addColumn("direccion").setAutoWidth(true);
         grid.addColumn("telefono").setAutoWidth(true);
-        
+     
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
-        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
-
+        //grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
+     // when a row is selected or deselected, populate form
+        /*grid.asSingleSelect().addValueChangeListener(event -> {
+            if (event.getValue() != null) {
+                UI.getCurrent().navigate(String.format(SUPPLIER_EDIT_ROUTE_TEMPLATE, event.getValue().getIdproveedor()));
+            } else {
+                //clearForm();
+                UI.getCurrent().navigate(ProveedoresView.class);
+            }
+        });*/
+        
+        
         return grid;
     }
+
+    /*@Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        Optional<Long> idProveedor = event.getRouteParameters().get(SUPPLIER_IDPROVEEDOR).map(Long::parseLong);;
+        if (idProveedor.isPresent()) {
+        	Proveedor proveedorObtenido = obtenerProveedor(idProveedor.get());
+            if (proveedorObtenido != null) {
+                populateForm(proveedorObtenido);
+            } else {
+                Notification.show(
+                        String.format("El proveedor con id = %s no existe", idProveedor.get()), 3000,
+                        Notification.Position.BOTTOM_START);
+                // when a row is selected but the data is no longer available,
+                // refresh grid
+                refreshGrid();
+                event.forwardTo(ProductosView.class);
+            }
+        }
+    }*/
     
-    @Override
+    /*private Proveedor obtenerProveedor(Long idproveedor) {
+		Proveedor encontrado = null;
+		for(Proveedor prov: elementos) {
+			if(prov.getIdproveedor() == idproveedor) {
+				encontrado = prov;
+				break;
+			}
+		}
+		return encontrado;
+	}*/
+    
+	@Override
 	public void mostrarProveedoresEnGrid(List<Proveedor> items) {
 		Collection<Proveedor> itemsCollection = items;
 		grid.setItems(itemsCollection);
@@ -244,4 +288,29 @@ public class ProveedoresView extends Div implements ViewModelProveedores {
         grid.getDataProvider().refreshAll();
         this.controlador.consultarProveedores();
     }
+
+	/*@Override
+	public void beforeEnter(BeforeEnterEvent event) {
+		// TODO Auto-generated method stub
+		
+	}*/
+    
+    /*private void clearForm() {
+    	populateForm(null);
+	}*/
+    
+    /*private void populateForm(Proveedor value) {
+    	this.proveedorSeleccionado = value;
+    	if(value != null) {
+    		idproveedor.setValue(Double.valueOf(value.getIdproveedor()));
+    		nombre.setValue(value.getNombre());
+    		direccion.setValue(value.getDireccion());
+    		telefono.setValue(value.getTelefono());
+    	}else {
+    		idproveedor.setValue(0.0);
+    		nombre.setValue("");
+    		direccion.setValue("");
+    		telefono.setValue("");
+    	}
+    }*/
 }

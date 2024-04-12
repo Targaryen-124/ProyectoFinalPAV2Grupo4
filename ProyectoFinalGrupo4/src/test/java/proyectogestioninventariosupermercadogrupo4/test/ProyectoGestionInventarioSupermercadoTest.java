@@ -3,6 +3,7 @@ package proyectogestioninventariosupermercadogrupo4.test;
 import static java.time.Duration.ofSeconds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 
 import org.junit.jupiter.api.MethodOrderer;
@@ -15,12 +16,62 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+//@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ProyectoGestionInventarioSupermercadoTest {
 	
 	@Test
-	@Order(1)
+	//@Order(1)
 	public void testConsultarProducto() throws InterruptedException {
+		// Inicializa el WebDriver para Chrome
+		WebDriver driver = new ChromeDriver();
+		
+		try{
+			// Abre la página web de productos
+			driver.get("http://localhost:8080/productos");
+			
+			int cantidadProductosInicial = 0;
+		
+			new WebDriverWait(driver, ofSeconds(30), ofSeconds(1)).until(titleIs("Productos"));
+			
+			Thread.sleep(3000);
+			
+			// Localiza el campo de entrada de nombre de usuario
+			WebElement campoCodigo = driver.findElement(By.xpath("//vaadin-text-field[@id='txt_codigo']/input"));
+			WebElement campoNombre = driver.findElement(By.xpath("//vaadin-text-field[@id='txt_nombre']/input"));
+			WebElement campoPrecio = driver.findElement(By.xpath("//vaadin-number-field[@id='txt_precio']/input"));
+			WebElement campoCategoria = driver.findElement(By.xpath("//vaadin-combo-box[@id='cbo_categoria']/input"));
+			WebElement campoFechavencimiento = driver.findElement(By.xpath("//vaadin-date-picker[@id='date_fechaVencimiento']/input"));
+			
+			WebElement botonGuardar = driver.findElement(By.xpath("//vaadin-button[@id='btn_guardar']"));
+			WebElement botonCancelar = driver.findElement(By.xpath("//vaadin-button[@id='btn_cancelar']"));
+			WebElement botonEliminar = driver.findElement(By.xpath("//vaadin-button[@id='btn_eliminar']"));
+			
+			// Ingresa el nombre de usuario
+			campoCodigo.sendKeys("4210563214789");
+			campoNombre.sendKeys("Manzana");
+			campoPrecio.sendKeys("20");
+			campoCategoria.sendKeys("Frutas");
+			campoFechavencimiento.sendKeys("25/09/2027");
+			
+			Thread.sleep(3000);
+			
+			//botonGuardar.click();
+			botonEliminar.click();
+			
+			int cantidadProductosFinal = 0;
+			
+			//assertFalse(cantidadProductosInicial+1 == 0);
+			assertTrue(cantidadProductosFinal == (cantidadProductosInicial+1));
+			//assertEquals(cantidadProductosFinal, (cantidadProductosInicial), .001);
+			
+		}finally {
+			driver.close();
+		}
+	}
+	
+	/*@Test
+	@Order(1)
+	public void testCrearProducto() throws InterruptedException {
 		// Inicializa el WebDriver para Chrome
 		WebDriver driver = new ChromeDriver();
 		
@@ -56,14 +107,15 @@ public class ProyectoGestionInventarioSupermercadoTest {
 			
 			int cantidadProductosFinal = 0;
 			
-			assertEquals(cantidadProductosFinal, (cantidadProductosInicial), .001);
+			assertTrue(cantidadProductosFinal == (cantidadProductosInicial+1));
 			
 		}finally {
 			driver.close();
 		}
-	}
+	}*/
+}
 	
-	@Test
+	/*@Test
 	@Order(2)
 	public void testConsultarCategoria() throws InterruptedException {
 		// Inicializa el WebDriver para Chrome
@@ -152,4 +204,4 @@ public class ProyectoGestionInventarioSupermercadoTest {
 			driver.close();
 		}
 	}
-}
+}*/

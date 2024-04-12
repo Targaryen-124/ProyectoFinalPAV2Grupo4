@@ -158,7 +158,7 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<Long> idCategoria = event.getRouteParameters().get(CATEGORY_IDCATEGORIA).map(Long::parseLong);;
+        Optional<Long> idCategoria = event.getRouteParameters().get(CATEGORY_IDCATEGORIA).map(Long::parseLong);
         if (idCategoria.isPresent()) {
         	Categoria categoriaObtenida = obtenerCategoria(idCategoria.get());
             if (categoriaObtenida != null) {
