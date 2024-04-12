@@ -58,7 +58,7 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
 
     private NumberField idcategoria;
     private TextField nombre;
-    private TextField estado;
+    private ComboBox<String> estado;
     private ComboBox<Proveedor> proveedor;
 
     private final Button cancel = new Button("Cancelar", new Icon(VaadinIcon.CLOSE_CIRCLE));
@@ -204,8 +204,9 @@ public class CategoriasView extends Div implements BeforeEnterObserver, ViewMode
         nombre.setId("txt_nombre");
         nombre.setPrefixComponent(VaadinIcon.LIST_UL.create());
         
-        estado = new TextField("Estado");
-        estado.setId("txt_estado");
+        estado = new ComboBox<>("Estado");
+        estado.setItems("Activa", "Inactiva");
+        estado.setId("cbo_estado");
         estado.setPrefixComponent(VaadinIcon.CLIPBOARD_CHECK.create());
         
         proveedor = new ComboBox<>("Proveedor");
