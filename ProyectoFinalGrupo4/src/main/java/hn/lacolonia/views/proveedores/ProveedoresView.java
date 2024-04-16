@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -109,10 +110,10 @@ public class ProveedoresView extends Div implements /*BeforeEnterObserver*/ View
     
     public static class Filters extends Div implements Specification<Proveedor> {
     	
-    	private final NumberField idproveedor = new NumberField("ID");
-        private final TextField nombre = new TextField("Nombre");
-        private final TextField direccion = new TextField("Direccion");
-        private final TextField telefono = new TextField("Telefono");
+    	private TextField idproveedor = new TextField("ID");
+        private TextField nombre = new TextField("Nombre");
+        private TextField direccion = new TextField("Direccion");
+        private TextField telefono = new TextField("Telefono");
         
         public Filters(Runnable onSearch) {
             setWidthFull();
@@ -132,7 +133,7 @@ public class ProveedoresView extends Div implements /*BeforeEnterObserver*/ View
                 onSearch.run();
             });
             
-            Button searchBtn = new Button("Guardar", new Icon(VaadinIcon.SEARCH));
+            Button searchBtn = new Button("Buscar", new Icon(VaadinIcon.SEARCH));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
             
@@ -154,6 +155,38 @@ public class ProveedoresView extends Div implements /*BeforeEnterObserver*/ View
             
             add(idproveedor, nombre, direccion, telefono, actions);
             
+            idproveedor.addValueChangeListener(event -> onSearch.run());
+            nombre.addValueChangeListener(event -> onSearch.run());
+            direccion.addValueChangeListener(event -> onSearch.run());
+            telefono.addValueChangeListener(event -> onSearch.run());
+            
+        }
+        
+        public List<Proveedor> applyFilters(List<Proveedor> proveedores) {
+            return proveedores.stream()
+                .filter(proveedor -> idMatches(proveedor) && nombreMatches(proveedor) &&
+                    direccionMatches(proveedor) && telefonoMatches(proveedor))
+                .collect(Collectors.toList());
+        }
+        
+        private boolean idMatches(Proveedor proveedor) {
+            String idFilter = String.valueOf(idproveedor.getValue()).toLowerCase();
+            return String.valueOf(proveedor.getIdproveedor()).toLowerCase().contains(idFilter);
+        }
+        
+        private boolean nombreMatches(Proveedor proveedor) {
+            String nombreFilter = nombre.getValue().toLowerCase();
+            return proveedor.getNombre().toLowerCase().contains(nombreFilter);
+        }
+        
+        private boolean direccionMatches(Proveedor proveedor) {
+            String direccionFilter = direccion.getValue().toLowerCase();
+            return proveedor.getDireccion().toLowerCase().contains(direccionFilter);
+        }
+        
+        private boolean telefonoMatches(Proveedor proveedor) {
+            String telefonoFilter = telefono.getValue().toLowerCase();
+            return proveedor.getTelefono().toLowerCase().contains(telefonoFilter);
         }
         
 		@Override
@@ -226,57 +259,16 @@ public class ProveedoresView extends Div implements /*BeforeEnterObserver*/ View
         grid.addColumn("telefono").setAutoWidth(true);
      
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
-        //grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
-     // when a row is selected or deselected, populate form
-        /*grid.asSingleSelect().addValueChangeListener(event -> {
-            if (event.getValue() != null) {
-                UI.getCurrent().navigate(String.format(SUPPLIER_EDIT_ROUTE_TEMPLATE, event.getValue().getIdproveedor()));
-            } else {
-                //clearForm();
-                UI.getCurrent().navigate(ProveedoresView.class);
-            }
-        });*/
-        
-        
         return grid;
     }
 
-    /*@Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        Optional<Long> idProveedor = event.getRouteParameters().get(SUPPLIER_IDPROVEEDOR).map(Long::parseLong);;
-        if (idProveedor.isPresent()) {
-        	Proveedor proveedorObtenido = obtenerProveedor(idProveedor.get());
-            if (proveedorObtenido != null) {
-                populateForm(proveedorObtenido);
-            } else {
-                Notification.show(
-                        String.format("El proveedor con id = %s no existe", idProveedor.get()), 3000,
-                        Notification.Position.BOTTOM_START);
-                // when a row is selected but the data is no longer available,
-                // refresh grid
-                refreshGrid();
-                event.forwardTo(ProductosView.class);
-            }
-        }
-    }*/
-    
-    /*private Proveedor obtenerProveedor(Long idproveedor) {
-		Proveedor encontrado = null;
-		for(Proveedor prov: elementos) {
-			if(prov.getIdproveedor() == idproveedor) {
-				encontrado = prov;
-				break;
-			}
-		}
-		return encontrado;
-	}*/
-    
-	@Override
-	public void mostrarProveedoresEnGrid(List<Proveedor> items) {
-		Collection<Proveedor> itemsCollection = items;
-		grid.setItems(itemsCollection);
-		this.elementos = items;
-	}
+    @Override
+    public void mostrarProveedoresEnGrid(List<Proveedor> items) {
+        List<Proveedor> proveedoresFiltrados = filters.applyFilters(items);
+        Collection<Proveedor> itemsCollection = proveedoresFiltrados;
+        grid.setItems(itemsCollection);
+        this.elementos = items;
+    }
     
     @Override
 	public void mostrarMensajeError(String mensaje) {
